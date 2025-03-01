@@ -1,0 +1,53 @@
+services:
+  poodle:
+    container_name: momotaro-poodle
+    image: hyperion13th144m/momotaro-poodle
+    volumes:
+      - ./data/contents:/data/contents
+      - ./logs/poodle:/var/log/poodle
+    restart: always
+
+  gibbon:
+    container_name: momotaro-gibbon
+    image: hyperion13th144m/momotaro-gibbon
+    volumes:
+      - ${DATA_SRC}:/data/src
+
+  terrier:
+    container_name: momotaro-terrier
+    image: hyperion13th144m/momotaro-terrier
+    restart: always
+    volumes:
+      - ./data/backup:/data/backup
+      - ./logs/terrier:/var/log/terrier
+    environment:
+      GROONGA_URL: http://groonga:10041/d
+
+  pheasant:
+    container_name: momotaro-pheasant
+    image: hyperion13th144m/momotaro-pheasant
+    volumes:
+      - ./logs/pheasant:/var/log/pheasant
+    environment:
+      POODLE_URL: http://poodle:8000
+      TERRIER_URL: http://terrier:8000
+      GROONGA_HOST: groonga
+      GROONGA_PORT: 10041
+      NODE_ENV: production
+
+  groonga:
+    container_name: momotaro-groonga
+    image: hyperion13th144m/momotaro-groonga
+    volumes:
+      - ./data/groonga:/groonga/db
+      - ./logs/groonga:/var/log/groonga
+    ports:
+      - ${GROONGA_EXTERNAL_PORT:-10041}:10041
+
+  nginx:
+    container_name: momotaro-nginx
+    image: hyperion13th144m/momotaro-nginx
+    ports:
+      - ${NGINX_EXTERNAL_PORT:-8000}:80
+    volumes:
+      - ./logs/nginx:/var/log/nginx
