@@ -1,0 +1,15 @@
+{
+	"name": "momotaro/pheasant",
+	"dockerComposeFile": ["../../docker-compose.dev.yaml"],
+	"service": "pheasant-dev",
+	"workspaceFolder": "/workspace/pheasant",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"MS-CEINTL.vscode-language-pack-ja",
+				"NextNav.NextNav",
+				"ms-azuretools.vscode-docker"
+			]
+		}
+	}
+}

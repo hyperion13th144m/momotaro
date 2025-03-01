@@ -1,0 +1,18 @@
+FROM groonga/groonga:15.0.2-debian
+
+ARG USERID=1000
+ARG GROUPID=1000
+ENV TZ Asia/Tokyo
+ENV GROONGA_ROOT /groonga
+ENV GROONGA_INITIALIZE_DIR /groonga/init
+ENV GROONGA_DB_DIR  /groonga/db
+ENV GROONGA_DB   $GROONGA_DB_DIR/db
+ENV GROONGA_LOG  /var/log/groonga
+
+RUN apt update && apt install -y jq
+RUN groupmod -g ${GROUPID} groonga && usermod -u ${USERID} -g ${GROUPID} -o groonga 
+RUN mkdir -p $GROONGA_INITIALIZE_DIR $GROONGA_DB_DIR && chown -R groonga.groonga $GROONGA_INITIALIZE_DIR $GROONGA_DB_DIR $GROONGA_LOG
+USER groonga
+WORKDIR $GROONGA_ROOT
+COPY ./0-tables.grn $GROONGA_INITIALIZE_DIR
+EXPOSE 10041

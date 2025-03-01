@@ -1,0 +1,71 @@
+services:
+  poodle-dev:
+    container_name: poodle-dev
+    image: hyperion13th144m/poodle-dev
+    build:
+      context: .devcontainer/poodle
+      dockerfile: Dockerfile
+    volumes:
+      - ./data/contents:/data/contents
+      - ./:/workspace
+    restart: always
+    tty: true
+    ports:
+      - 18000:8000
+ 
+  gibbon-dev:
+    container_name: gibbon-dev
+    image: hyperion13th144m/gibbon-dev
+    build:
+      context: .devcontainer/gibbon
+      dockerfile: Dockerfile
+    volumes:
+      - ./data/src:/data/src
+      - ./:/workspace
+    restart: always
+    tty: true
+
+  terrier-dev:
+    container_name: terrier-dev
+    image: hyperion13th144m/terrier-dev
+    build:
+      context: .devcontainer/terrier
+      dockerfile: Dockerfile
+    volumes:
+      - ./data/backup:/data/backup
+      - ./:/workspace
+    restart: always
+    tty: true
+    environment:
+      GROONGA_URL: http://groonga-dev:10041/d
+    ports:
+      - 28000:8000
+ 
+  pheasant-dev:
+    container_name: pheasant-dev
+    image: hyperion13th144m/pheasant-dev
+    build:
+      context: .devcontainer/pheasant
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/workspace
+    tty: true
+    environment:
+      POODLE_URL: http://poodle-dev:8000
+      TERRIER_URL: http://terrier-dev:8000
+      GROONGA_HOST: groonga-dev
+      GROONGA_PORT: 10041
+      NODE_ENV: development
+
+  groonga-dev:
+    platform: linux/amd64
+    container_name: groonga-dev
+    image: hyperion13th144m/groonga-dev
+    build:
+      context: groonga
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./data/groonga:/groonga/db
+      - ./logs/groonga:/var/log/groonga
+    ports:
+      - 20041:10041

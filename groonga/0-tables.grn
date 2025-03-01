@@ -1,0 +1,188 @@
+#-- coding: utf-8 --
+
+
+#######################################################################
+#  Applicant テーブル定義 drilldowns の高速化のため. 出願人名が_keyになる
+#######################################################################
+table_create --name Applicant --flags TABLE_HASH_KEY --key_type ShortText
+
+#######################################################################
+#  Inventor テーブル定義 drilldowns の高速化のため. 発明者名が_keyになる
+#######################################################################
+table_create --name Inventor --flags TABLE_HASH_KEY --key_type ShortText
+
+#######################################################################
+#  Agent テーブル定義 drilldowns の高速化のため. 代理人名が_keyになる
+#######################################################################
+table_create --name Agent --flags TABLE_HASH_KEY --key_type ShortText
+
+#######################################################################
+#  Assignee テーブル定義 drilldowns の高速化のため. 担当者名が_keyになる
+#######################################################################
+table_create --name Assignee --flags TABLE_HASH_KEY --key_type ShortText
+
+#######################################################################
+#  タグ
+#######################################################################
+table_create --name Tag --flags TABLE_HASH_KEY --key_type ShortText
+
+#######################################################################
+#  拒絶理由コード
+#######################################################################
+table_create --name RejectionCode --flags TABLE_HASH_KEY --key_type ShortText
+
+#######################################################################
+#                         Document テーブル
+#   特許(or実用新案)の出願書類（明細書、特許請求の範囲、要約書、図面）
+#   _key は文書の拡張子をのぞいたファイル名
+#######################################################################
+table_create --name Document --flags TABLE_HASH_KEY --key_type ShortText
+  # 法律種別 (1=特許, 2=実案)
+  column_create --table Document --name Law --type Int8
+
+  # 出願番号,登録番号,国際出願番号,受領番号,審判番号
+  column_create --table Document --name ApplicationNumber --type ShortText
+  column_create --table Document --name RegistrationNumber --type ShortText
+  column_create --table Document --name IntlAppNumber --type ShortText
+  column_create --table Document --name ReceiptNumber --type ShortText
+  column_create --table Document --name FileReferenceNumber --type ShortText
+  column_create --table Document --name AppealReferenceNumber --type ShortText
+
+  # 文書名,文書コード,外国出願orNot
+  column_create --table Document --name DocumentName --type ShortText
+  column_create --table Document --name DocumentCode --type ShortText
+  column_create --table Document --name IsForeignLanguage --type Bool
+
+  # ファイル種別: 出願系(AAA), 出願系の未送信(AAS)など
+  column_create --table Document --name DocumentKind --type ShortText
+
+  # ファイル拡張子(JWX,JWS,JPC,JPD など)
+  column_create --table Document --name DocumentExt  --type ShortText
+
+  # 送受信日
+  column_create --table Document --name SRDate --type Time
+
+  # 明細書(全文),発明/考案の名称,技術分野,背景技術,解決しようとする課題,
+  # 解決手段,効果,実施形態,産業上の利用可能性,要約書,請求の範囲
+  column_create --table Document --name Description    --type LongText
+  column_create --table Document --name InventionTitle --type ShortText
+  column_create --table Document --name TechnicalField --type ShortText
+  column_create --table Document --name BackgroundArt  --type ShortText
+  column_create --table Document --name TechProblem    --type ShortText
+  column_create --table Document --name TechSolution   --type Text
+  column_create --table Document --name AdvantageousEffects --type ShortText
+  column_create --table Document --name Embodiments  --type LongText
+  column_create --table Document --name IndustrialApplicability --type ShortText
+  column_create --table Document --name Abstract --type ShortText
+  column_create --table Document --name IndependentClaims --type Text
+  column_create --table Document --name DependentClaims  --type Text
+
+  # 中間処理文書（意見書等）
+  column_create --table Document --name Prosecution --type Text
+
+  # 拒絶理由コード
+  column_create --table Document --name RejectionCodes --flags COLUMN_VECTOR --type RejectionCode
+
+  # 出願人,発明者,代理人
+  column_create --table Document --name Applicants --flags COLUMN_VECTOR --type Applicant
+  column_create --table Document --name Inventors --flags COLUMN_VECTOR --type Inventor
+  column_create --table Document --name Agents --flags COLUMN_VECTOR --type Agent
+
+  # 出願種別コード  分割出願、変更、外国語書面、30条など （Law+出願種別コード）
+  # column_create --table Document --name Article --type ArticleTable
+
+  # 担当者
+  column_create --table Document --name Assignees --flags COLUMN_VECTOR --type Assignee
+
+  # 整理番号（願書記載でない整理番号）
+  column_create --table Document --name RefNumber --type ShortText
+
+  # 顧客整理番号
+  column_create --table Document --name ClientRefNumber --type ShortText
+
+  # タグ
+  column_create --table Document --name Tags --flags COLUMN_VECTOR --type Tag
+
+  # Memo
+  column_create --table Document --name Memo --type ShortText
+
+
+#######################################################################
+#  Image Documentに付属の画像の情報
+#######################################################################
+table_create --name Image --flags TABLE_HASH_KEY --key_type ShortText
+  # Document のID(_key)
+  column_create --table Image --name DocumentId --type Document
+
+  # 図番号
+  column_create --table Image --name FigNumber --type ShortText
+
+  # ファイル名
+  column_create --table Image --name Filename --type ShortText
+
+  # Figure,Chemistryなどの種別
+  column_create --table Image --name Kind --type ShortText
+
+  # thumbnail, middle, large 大きさ種別
+  column_create --table Image --name SizeTag --type ShortText
+
+  # 幅,高さ
+  column_create --table Image --name Width --type ShortText
+  column_create --table Image --name Height --type ShortText
+
+  # 代表図 or not
+  column_create --table Image --name Representative --type Bool
+
+  # 図の説明
+  column_create --table Image --name Description --type ShortText
+
+
+#######################################################################
+#                全文検索用インデックス
+# https://groonga.org/ja/docs/tutorial/introduction.html#create-a-lexicon-table-for-full-text-search
+#######################################################################
+table_create  --name Terms --flags TABLE_PAT_KEY --key_type ShortText --default_tokenizer TokenBigram --normalizer NormalizerAuto
+  column_create --table Terms --name indexDescription      --flags COLUMN_INDEX|WITH_POSITION --type Document --source Description
+  column_create --table Terms --name indexInventionTitle   --flags COLUMN_INDEX|WITH_POSITION --type Document --source InventionTitle
+  column_create --table Terms --name indexTechnicalField    --flags COLUMN_INDEX|WITH_POSITION --type Document --source TechnicalField
+  column_create --table Terms --name indexBackgroundArt     --flags COLUMN_INDEX|WITH_POSITION --type Document --source BackgroundArt
+  column_create --table Terms --name indexTechProblem      --flags COLUMN_INDEX|WITH_POSITION --type Document --source TechProblem
+  column_create --table Terms --name indexTechSolution     --flags COLUMN_INDEX|WITH_POSITION --type Document --source TechSolution
+  column_create --table Terms --name indexAdvantageousEffects    --flags COLUMN_INDEX|WITH_POSITION --type Document --source AdvantageousEffects
+  column_create --table Terms --name indexEmbodiments    --flags COLUMN_INDEX|WITH_POSITION --type Document --source Embodiments
+  column_create --table Terms --name indexIndustrialApplicability    --flags COLUMN_INDEX|WITH_POSITION --type Document --source IndustrialApplicability
+  column_create --table Terms --name indexIndependentClaims   --flags COLUMN_INDEX|WITH_POSITION --type Document --source IndependentClaims
+  column_create --table Terms --name indexDependentClaims   --flags COLUMN_INDEX|WITH_POSITION --type Document --source DependentClaims
+  column_create --table Terms --name indexAbstract  --flags COLUMN_INDEX|WITH_POSITION --type Document --source Abstract
+  column_create --table Terms --name indexProsecution --flags COLUMN_INDEX|WITH_POSITION --type Document --source Prosecution
+  column_create --table Terms --name indexMemo --flags COLUMN_INDEX|WITH_POSITION --type Document --source Memo
+
+  # Applicant,Inventor,Agent テーブルから　Document へのインデックス
+  # Groonga v14.0.4 https://groonga.org/ja/blog/2024/05/29/groonga-14.0.4.html
+  column_create --table Applicant --name indexApplicant --flags COLUMN_INDEX --type Document --source Applicants
+  column_create --table Inventor --name indexInventor  --flags COLUMN_INDEX --type Document --source Inventors
+  column_create --table Agent --name indexAgent --flags COLUMN_INDEX --type Document --source Agents
+  column_create --table Assignee --name indexAssignee --flags COLUMN_INDEX --type Document --source Assignees
+
+  # Applicant の _key について全文検索するために必要なインデックス
+  column_create --table Terms --name indexApplicant --flags COLUMN_INDEX|WITH_POSITION --type Applicant --source _key
+  column_create --table Terms --name indexInventor  --flags COLUMN_INDEX|WITH_POSITION --type Inventor  --source _key
+  column_create --table Terms --name indexAgent     --flags COLUMN_INDEX|WITH_POSITION --type Agent     --source _key
+  column_create --table Terms --name indexAssignee  --flags COLUMN_INDEX|WITH_POSITION --type Assignee  --source _key
+
+
+#######################################################################
+#                整理番号など一文字単位で検索するカラム用のインデックス
+#######################################################################
+table_create  --name NumberIndexes --flags TABLE_PAT_KEY --key_type ShortText --default_tokenizer TokenBigramSplitSymbolAlphaDigit --normalizer NormalizerAuto
+  column_create --table NumberIndexes --name indexApplicationNumber --flags COLUMN_INDEX|WITH_POSITION --type Document --source ApplicationNumber
+  column_create --table NumberIndexes --name indexRefNumber       --flags COLUMN_INDEX|WITH_POSITION --type Document --source RefNumber
+  column_create --table NumberIndexes --name indexClientRefNumber --flags COLUMN_INDEX|WITH_POSITION --type Document --source ClientRefNumber
+  column_create --table NumberIndexes --name indexFileReferenceNumber --flags COLUMN_INDEX|WITH_POSITION --type Document --source FileReferenceNumber
+
+  
+#######################################################################
+# タグ用インデックス
+#######################################################################
+  column_create --table Tag --name index_tags --flags COLUMN_INDEX --type Document --source Tags
+

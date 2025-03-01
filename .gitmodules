@@ -1,0 +1,12 @@
+[submodule "gibbon"]
+	path = gibbon
+	url = https://github.com/hyperion13th144m/gibbon
+[submodule "pheasant"]
+	path = pheasant
+	url = https://github.com/hyperion13th144m/pheasant
+[submodule "poodle"]
+	path = poodle
+	url = https://github.com/hyperion13th144m/poodle
+[submodule "terrier"]
+	path = terrier
+	url = https://github.com/hyperion13th144m/terrier
